@@ -5,7 +5,7 @@
         ПРЕИМУЩЕСТВА
       </div>
       <div class="features_section-title-item text_desc">
-        c:rypto построен таким образом чтобы наши мемберы могли получать максимум от канала
+        <span class="selected">c:rypto</span> построен таким образом чтобы наши мемберы могли получать <span class="selected">максимум</span> от канала
       </div>
     </div>
     <div class="features_main">

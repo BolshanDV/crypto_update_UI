@@ -20,7 +20,26 @@
             @click="copy_license_key(identifier)"
             class="input_btn"
           >
-            <img src="../../assets/images/payment/copy.svg" alt="">
+            <svg :class="{active: copyFlag === 'success'}"
+                 width="15" height="15" viewBox="0 0 15 15" fill="none"
+                 xmlns="http://www.w3.org/2000/svg">
+              <path :class="{active: copyFlag === 'success'}"
+                    d="M10.75 8.40995V10.36C10.75 12.96 9.71 14 7.11 14H4.64C2.04 14 1 12.96 1 10.36V7.88995C1 5.28995 2.04 4.24995 4.64 4.24995H6.59"
+                    stroke="white" stroke-linecap="round" stroke-linejoin="round"/>
+              <path :class="{active: copyFlag === 'success'}"
+                    d="M10.7496 8.40995H8.6696C7.1096 8.40995 6.5896 7.88995 6.5896 6.32995V4.24995L10.7496 8.40995Z"
+                    stroke="white" stroke-linecap="round" stroke-linejoin="round"/>
+              <path :class="{active: copyFlag === 'success'}" d="M7.23975 1H9.83975" stroke="white" stroke-linecap="round"
+                    stroke-linejoin="round"/>
+              <path :class="{active: copyFlag === 'success'}" d="M4.25 2.95C4.25 1.871 5.121 1 6.2 1H7.903" stroke="white"
+                    stroke-linecap="round" stroke-linejoin="round"/>
+              <path :class="{active: copyFlag === 'success'}"
+                    d="M13.9996 4.90007V8.92357C13.9996 9.93107 13.1806 10.7501 12.1731 10.7501"
+                    stroke="white" stroke-linecap="round" stroke-linejoin="round"/>
+              <path :class="{active: copyFlag === 'success'}"
+                    d="M13.9999 4.9H12.0499C10.5874 4.9 10.0999 4.4125 10.0999 2.95V1L13.9999 4.9Z"
+                    stroke="white" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
           </div>
         </div>
       </div>
@@ -50,7 +69,7 @@
       </div>
       <div class="payment_section-item">
         <div class="payment_description">
-          4 Ознакомьтесь с каналом <span class="selected">#starting-info</span>, изучайте и наслаждайтесь
+          4 Ознакомьтесь с каналом <a href="https://discord.gg/a4GN6xY9kq" class="selected">#starting-info</a>, изучайте и наслаждайтесь
         </div>
       </div>
       <div class="additional_information">
@@ -63,19 +82,30 @@
 </template>
 
 <script>
+import {mapGetters, mapActions} from "vuex";
+
 export default {
   name: "success_payment",
   data() {
     return {}
   },
   props:['identifier'],
+  computed: {
+    ...mapGetters('checkingScreen', ['copyFlag'])
+
+  },
   methods: {
+    ...mapActions('checkingScreen', ['changeCopyFlag']),
     async copy_license_key(identifier) {
       let text = identifier
       try {
         if (navigator.clipboard) {
+          await this.changeCopyFlag('success')
           await navigator.clipboard.writeText(text);
           console.log(`The text '${text}' is in the Clipboard Now!`);
+          setTimeout(() => {
+            this.changeCopyFlag(false)
+          }, 150);
         } else {
           console.log(`Clipboard API is Not Supported`);
         }
@@ -94,9 +124,7 @@ export default {
   display: flex;
   flex-direction: column;
   padding: 35px 36px 25px;
-  width: 24%;
-  min-width: 320px;
-  max-width: 400px;
+  width: 391px;
 }
 
 .main_section-title {
@@ -104,10 +132,14 @@ export default {
   flex-direction: row;
   justify-content: space-between;
   align-items: center;
-  font-size: 22px;
-  line-height: 22px;
   color: #FFFFFF;
   margin-bottom: 30px;
+  font-family: Montserrat;
+  font-size: 24px;
+  font-style: normal;
+  font-weight: 700;
+  line-height: 24px; /* 100% */
+  letter-spacing: 0.24px;
 }
 
 .payment_section {
@@ -126,6 +158,10 @@ export default {
   font-size: 14px;
   line-height: 20px;
   margin: 0 0 7px;
+  font-feature-settings: 'clig' off, 'liga' off;
+  font-family: 'Roboto', sans-serif;
+  font-style: normal;
+  font-weight: 400;
 }
 .additional_information{
   margin-top: 80px;
@@ -188,8 +224,11 @@ export default {
 
 .input_btn {
   background: #0D121A;
+  cursor: pointer;
 }
-
+.input_element-btn{
+  cursor: text;
+}
 .button_active {
   background: #AA1A17;
   border-radius: 8px;

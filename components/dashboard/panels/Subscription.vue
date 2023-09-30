@@ -28,25 +28,6 @@
         </div>
       </div>
     </div>
-    <div v-if="!screenWidth" class="subscription_element">
-      <div class="subscription_element-title">
-        Текущий план
-      </div>
-      <div class="selected_plan">
-        <div class="selected_plan-item"
-             v-for="available_plan in available_plans"
-             :key="available_plan.id"
-             :class="{ selected_item: available_plan.id === user_details.licence.planId}"
-        >
-          <div>
-            {{ available_plan.price }}$
-          </div>
-          <div>
-            {{ available_plan.uiText }}
-          </div>
-        </div>
-      </div>
-    </div>
     <div class="subscription_element">
       <div class="double_section">
         <div class="double_section_item">
@@ -55,7 +36,7 @@
           </div>
           <div
             v-if="user_details"
-            class="double_section_body">
+            class="double_section_body copy_section">
             {{ user_details.licence.identifier }}
           </div>
         </div>
@@ -70,13 +51,24 @@
             <div v-if="user_details">
               {{ user_details.licence.licenceType.majorRoleName }}
             </div>
-            <div class="role_circle">
-
+            <div
+              class="role_circle"
+              :style="{ background: roleColor}"
+            >
             </div>
           </div>
         </div>
       </div>
-
+    </div>
+    <div v-if="!screenWidth" class="subscription_element">
+      <div class="subscription_element-title">
+        Текущий план
+      </div>
+      <div
+        class="double_section_body copy_section payment_el"
+      >
+        {{ planInfo }}
+      </div>
     </div>
     <div class="subscription_element">
       <div class="subscription_element-title">
@@ -87,10 +79,17 @@
           v-for="(payment, index) in user_details.payments"
           :key="index"
           class="transactions_element">
-          <div class="transaction_item success">
-            {{ payment.amount }} USDT$ - {{ payment.chainName }}
+          <div
+            class="transaction_item transaction_item_payment"
+            :class="{success: payment.paymentState === 'succeeded', selected: payment.paymentState !== 'succeeded'}"
+
+
+          >
+            <span>{{ payment.amount }} {{ payment.currency }}<span v-if="payment.currency === 'RUB'">&#8381</span><span
+              v-else>$</span> - {{ payment.chainName }}
+            </span>
           </div>
-          <div class="transaction_item">
+          <div class="transaction_item transaction_item_data">
             {{ payment.paymentDate | changeDateFormat }}
           </div>
           <div
@@ -102,12 +101,33 @@
             <div class="transaction_item"
                  @click=moveUrlTransaction(payment.transactionId)
             >
-              <img src="../../../assets/images/dashboard/search.svg" alt="">
+              <img src="../../../assets/images/dashboard/search.svg" alt="" class="button_section">
             </div>
             <div v-if="!screenWidth" class="transaction_item"
                  @click="copy(payment.transactionId)"
             >
-              <img src="../../../assets/images/dashboard/copy.svg" alt="">
+              <svg :class="{active: copyFlag === payment.transactionId}"
+                   width="15" height="15" viewBox="0 0 15 15" fill="none"
+                   xmlns="http://www.w3.org/2000/svg">
+                <path :class="{active: copyFlag === payment.transactionId}"
+                      d="M10.75 8.40995V10.36C10.75 12.96 9.71 14 7.11 14H4.64C2.04 14 1 12.96 1 10.36V7.88995C1 5.28995 2.04 4.24995 4.64 4.24995H6.59"
+                      stroke="white" stroke-linecap="round" stroke-linejoin="round"/>
+                <path :class="{active: copyFlag === payment.transactionId}"
+                      d="M10.7496 8.40995H8.6696C7.1096 8.40995 6.5896 7.88995 6.5896 6.32995V4.24995L10.7496 8.40995Z"
+                      stroke="white" stroke-linecap="round" stroke-linejoin="round"/>
+                <path :class="{active: copyFlag === payment.transactionId}" d="M7.23975 1H9.83975" stroke="white"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"/>
+                <path :class="{active: copyFlag === payment.transactionId}"
+                      d="M4.25 2.95C4.25 1.871 5.121 1 6.2 1H7.903" stroke="white"
+                      stroke-linecap="round" stroke-linejoin="round"/>
+                <path :class="{active: copyFlag === payment.transactionId}"
+                      d="M13.9996 4.90007V8.92357C13.9996 9.93107 13.1806 10.7501 12.1731 10.7501"
+                      stroke="white" stroke-linecap="round" stroke-linejoin="round"/>
+                <path :class="{active: copyFlag === payment.transactionId}"
+                      d="M13.9999 4.9H12.0499C10.5874 4.9 10.0999 4.4125 10.0999 2.95V1L13.9999 4.9Z"
+                      stroke="white" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
             </div>
           </div>
         </div>
@@ -120,16 +140,13 @@
         >
           Продлить
         </div>
-        <!--        <div class="subscription_date">-->
-        <!--          <span class="date_description">Отключить авто-продление</span>-->
-        <!--        </div>-->
       </div>
     </div>
   </div>
 </template>
 
 <script>
-import {mapGetters} from "vuex";
+import {mapActions, mapGetters} from "vuex";
 import axios from "axios";
 
 export default {
@@ -138,12 +155,17 @@ export default {
   data() {
     return {
       renewSubscriptionFlag: false,
-      available_plans: []
+      available_plans: [],
+      planInfo: ''
     }
   },
   computed: {
-    ...mapGetters('checkingScreen', ['screenWidth']),
+    ...mapGetters('checkingScreen', ['screenWidth', 'copyFlag']),
     ...mapGetters('authorizationHandler', ['user_details', 'activeLicence']),
+
+    roleColor() {
+      return `#${this.user_details.licence.licenceType.majorRoleColor.toString(16)}`
+    },
 
     finaleDate() {
       if (this.user_details.licence.renewalDate) {
@@ -161,10 +183,14 @@ export default {
       return shortDate + ' ' + shortTime
     },
   },
-  mounted() {
-    this.getPlans()
+  async mounted() {
+    await this.GET_USER_DETAILS()
+    await this.getPlans()
   },
   methods: {
+    ...mapActions('authorizationHandler', ['GET_USER_DETAILS']),
+    ...mapActions('checkingScreen', ['changeCopyFlag']),
+
     renew_sub() {
       this.renewSubscription(true)
     },
@@ -186,29 +212,35 @@ export default {
       if (response.status === 200) {
         let plans = response.objects
         plans.sort(this.sorterPlans('period'));
-        plans.forEach((plan) => {
-          switch (plan.period) {
-            case 1:
-              plan.uiText = "месяц";
-              break;
-            case 3:
-              plan.uiText = "3 месяца";
-              break;
-            case 6:
-              plan.uiText = "6 месяцев";
-              break;
-            case 12:
-              plan.uiText = "1 год";
-              break;
+        plans.forEach((available_plan) => {
+          if (available_plan.id === this.user_details.licence.planId) {
+            switch (available_plan.period) {
+              case 1:
+                available_plan.uiText = "месяц";
+                break;
+              case 3:
+                available_plan.uiText = "3 месяца";
+                break;
+              case 6:
+                available_plan.uiText = "6 месяцев";
+                break;
+              case 12:
+                available_plan.uiText = "1 год";
+                break;
+            }
+            this.planInfo = available_plan.price + '$' + ' - ' + available_plan.uiText
           }
-          this.available_plans.push(plan)
-        });
+        })
       }
     },
     async copy(transactionId) {
       try {
         if (navigator.clipboard) {
+          await this.changeCopyFlag(transactionId)
           await navigator.clipboard.writeText(transactionId);
+          setTimeout(() => {
+            this.changeCopyFlag(false)
+          }, 150);
         }
       } catch (err) {
         console.error(`Failed to copy: ${err}`);
@@ -227,6 +259,16 @@ export default {
   flex-direction: column;
   justify-content: flex-start;
   align-items: flex-start;
+  height: auto;
+}
+
+.subscription_title {
+  font-feature-settings: 'clig' off, 'liga' off;
+  font-family: 'Montserrat', serif;
+  font-size: 20px;
+  font-style: normal;
+  font-weight: 500;
+  line-height: 32px; /* 160% */
 }
 
 .subscription_element {
@@ -235,7 +277,7 @@ export default {
 }
 
 .subscription_element:last-child {
-  margin: 15px 0 0;
+  margin: 21px 0 0;
 }
 
 .subscription_header {
@@ -254,14 +296,19 @@ export default {
   line-height: 30px;
   color: #727A84;
 }
-.date_description:first-child{
-  margin-right: 5px;
+
+.date_description:first-child {
+  margin-right: 10px;
 }
+
 .subscription_element-title {
   color: #727A84;
   font-size: 14px;
   line-height: 20px;
   margin-bottom: 10px;
+  font-family: 'Roboto', sans-serif;
+  font-style: normal;
+  font-weight: 400;
 }
 
 .selected_plan {
@@ -311,7 +358,6 @@ export default {
 
 .role_circle {
   border-radius: 50%;
-  background: #A50A7F;
   width: 15px;
   height: 15px;
 }
@@ -335,20 +381,37 @@ export default {
 .transaction_item {
   color: #727A84;
   margin-right: 10px;
+  /*height: 25px;*/
+  white-space: nowrap;
 }
 
 .transaction_item:last-child {
   margin-right: 0;
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
 }
 
 .transaction_item:nth-child(3) {
   overflow-x: scroll;
-  width: 90px;
+  width: 100px;
 }
 
 .transaction_item::-webkit-scrollbar {
   width: 0;
   height: 0;
+}
+
+.transaction_item_payment {
+  width: 130px;
+  overflow-x: scroll;
+
+}
+
+.transaction_item_data {
+  width: 120px;
+  overflow-x: scroll;
 }
 
 .transactions_element {
@@ -374,10 +437,20 @@ export default {
   padding: 10px 30px;
   font-size: 16px;
   line-height: 19px;
+  font-weight: 300;
 }
 
 .success {
   color: #00FFA3;
+}
+
+.selected {
+  color: #AA1A17;
+}
+
+.payment_el {
+  height: 22px;
+  width: 205px;
 }
 
 @media screen and ( width < 850px) {

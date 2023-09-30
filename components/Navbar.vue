@@ -16,10 +16,10 @@
         >
           <div class="header__navigation-links">
             <NuxtLink v-scroll-to="'#top'" to="/" class="navigation-link">
-              Домой
+              <span>Домой</span>
             </NuxtLink>
             <NuxtLink v-scroll-to="'#features'" to="/" class="navigation-link">
-              Преимущества
+              <p>Преимущества</p>
             </NuxtLink>
             <NuxtLink v-scroll-to="'#soft'" to="/" class="navigation-link">
               Софт
@@ -28,11 +28,11 @@
               FAQ
             </NuxtLink>
           </div>
-            <div class="header__button"
-                 @click="openDashboard"
-            >
-              Dashboard
-            </div>
+          <div class="header__button"
+               @click="openDashboard"
+          >
+            Dashboard
+          </div>
         </nav>
       </div>
     </div>
@@ -54,8 +54,9 @@ export default {
   },
   methods: {
     ...mapActions('authorizationHandler', ['GET_USER_DETAILS']),
+    ...mapActions('referralModule', ['changeReferralFlag']),
 
-    async openDashboard(){
+    async openDashboard() {
       await this.GET_USER_DETAILS()
       if (this.redirectFlag) {
         await this.$router.push('/dashboard')
@@ -95,7 +96,19 @@ export default {
 
 .navigation-link {
   cursor: pointer;
+  color: #8B929B;
+  font-family: 'Roboto', sans-serif;
+  font-size: 16px;
+  font-style: normal;
+  font-weight: 400;
+  line-height: 24px; /* 150% */
   transition: 0.3s all ease;
+  outline: none;
+  letter-spacing: 0.16px;
+}
+
+.navigation-link:first-child {
+  color: #FFFFFF;
 }
 
 .navigation-link:hover {
@@ -109,11 +122,19 @@ export default {
 .header__button {
   background: #AA1A17;
   border-radius: 10px;
-  padding: 10px 35px;
-  color: #FFFFFF;
-  font-size: 14px;
-  line-height: 18px;
+  padding: 15px 30px;
   cursor: pointer;
+  color: #FFF;
+  font-family: 'Roboto', sans-serif;
+  font-size: 16px;
+  font-style: normal;
+  font-weight: 400;
+  line-height: normal;
+  letter-spacing: 0.16px;
+}
+
+.header__button:hover {
+  background: #c4211d;
 }
 
 .burger-button {
@@ -124,6 +145,10 @@ export default {
   border-radius: 100%;
   cursor: pointer;
 
+}
+
+.logo {
+  outline: none;
 }
 
 @media screen and (width < 850px) {

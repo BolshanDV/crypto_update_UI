@@ -1,10 +1,22 @@
+
 @font-face {
   font-family: 'Roboto';
   font-style: normal;
   font-weight: 400;
   src: url('~@/static/fonts/Roboto-Regular.ttf') format("truetype");
 }
-
+@font-face {
+  font-family: 'Montserrat';
+  font-style: normal;
+  font-weight: 700;
+  src: url('~@/static/fonts/Montserrat-Bold.ttf') format("truetype");
+}
+@font-face {
+  font-family: 'Montserrat';
+  font-style: normal;
+  font-weight: 500;
+  src: url('~@/static/fonts/Montserrat-SemiBold.ttf') format("truetype");
+}
 @font-face {
   font-family: 'Roboto';
   font-style: normal;
@@ -19,13 +31,13 @@
   src: url('~@/static/fonts/Fugue-Regular.otf') format("opentype");
 }
 .default-text{
-  font-family: 'Roboto';
+  font-family: 'Roboto', sans-serif;
   font-size: 15px;
   line-height: 23px;
 }
 a {
   text-decoration: none;
-  font-family: 'Roboto';
+  font-family: 'Roboto', sans-serif;
   font-weight: 400;
   font-size: 16px;
   line-height: 19px;
@@ -33,11 +45,14 @@ a {
   letter-spacing: 0.01em;
 }
 .title {
-  font-weight: 500;
   font-size: 36px;
-  line-height: 42px;
+  line-height: normal;
   letter-spacing: 0.01em;
   color: #FFFFFF;
+  font-family: 'Montserrat', sans-serif;
+  font-style: normal;
+  font-weight: 700;
+  text-transform: uppercase;
 }
 .text_desc {
   color: #727A84;

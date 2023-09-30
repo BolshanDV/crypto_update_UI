@@ -29,12 +29,15 @@ export default {
   flex-direction: column;
   justify-content: flex-start;
   align-items: center;
-  /*margin-top: 30vh;*/
+  width: auto;
 }
 .success_title{
   font-size: 20px;
   line-height: 23px;
   color: #FFFFFF;
+  font-family: Montserrat;
+  font-style: normal;
+  font-weight: 700;
 }
 .success_desc{
   font-size: 16px;
@@ -43,6 +46,10 @@ export default {
 }
 .success_header{
   margin-bottom: 30px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
 }
 .success_section-item {
   /*height: 55vh;*/

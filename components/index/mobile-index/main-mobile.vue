@@ -29,28 +29,31 @@
         <div class="double_column">
           <div class="payment_column_element">
             <div class="btn_container">
-              <div class="btn_container-item"
-                   v-for="available_plan in available_plans"
-                   :key="available_plan.id"
-                   @click="setPlanId(available_plan.id)"
-                   v-bind:class="{ selected_item: available_plan.id === checkout['plan_id']}"
+              <div
+                class="btn_container-item"
+                v-for="(available_plan, index) in available_plans"
+                v-bind:class="{ selected_item: available_plan.id === checkout['plan_id']}"
+                :key="available_plan.id"
+                @click="setPlanId(available_plan.id)"
               >
-                <span>
-                  {{ available_plan.price }}$/{{ available_plan.uiText }}
-                </span>
-                <span
-
+                <div class="time_section">{{ available_plan.uiText }}</div>
+                <div
                   class="price_section"
-                  v-if="available_plan.sale_percent"
+                  :class="{price_section_first: available_plan.sale_percent === 0}"
                 >
-                  <s
-                    class="struct_out"
-                    v-bind:class="{ struct_out_active: available_plan.id === checkout['plan_id']}"
+                  {{ available_plan.price }}$
+                </div>
+                <div
+                  class="sale_section"
+                >
+                  <div
+                    v-if="available_plan.sale_percent !== 0"
                   >
-                    {{ available_plan.price }}$
-                  </s>
-                  <span class="persent_section">{{ available_plan.sale_percent }}%</span>
-                </span>
+                    <s class="selected">{{ available_plan.price_without_sale }}$</s>
+                    <span class="sale_percent">{{ available_plan.sale_percent }}%</span>
+                  </div>
+                </div>
+
               </div>
 
             </div>
@@ -63,7 +66,7 @@
                 v-if="!checkout.plan_id"
                 class="design_btn"
               >
-                ОФОРМИТЬ
+                Оформить
               </div>
               <NuxtLink
                 v-else
@@ -71,7 +74,7 @@
                 to="/checkout"
                 class="design_btn design_btn_active"
               >
-                ОФОРМИТЬ
+                Оформить
               </NuxtLink>
             </div>
           </div>
@@ -102,27 +105,31 @@ export default {
     ...mapMutations('checkoutModule', ['setPlanId']),
 
     async getMembersPreview() {
-      const response = await axios
-        .get(`${process.env.PLAN_DETAILS_URL}/api/server/details/members/preview`)
-        .then(resObj => {
-          return {
-            objects: resObj.data,
-            status: resObj.status
-          };
-        })
-        .catch(error => {
-          console.log(error);
-        });
-      if (response.status === 200) {
-        this.member_amount = response.objects
-      }
+      // const response = await axios
+      //   .get(`${process.env.PLAN_DETAILS_URL}/api/server/details/members/preview`)
+      //   .then(resObj => {
+      //     return {
+      //       objects: resObj.data,
+      //       status: resObj.status
+      //     };
+      //   })
+      //   .catch(error => {
+      //     console.log(error);
+      //   });
+      // if (response.status === 200) {
+      //   this.member_amount = response.objects
+      // }
     },
     sorterPlans(field) {
       return (a, b) => a[field] > b[field] ? 1 : -1;
     },
     async getPlans() {
+      let url = ''
+      if (localStorage.referralCode) {
+        url = '?referralCode=' + localStorage.referralCode
+      }
       const response = await axios
-        .get(`${process.env.PLAN_DETAILS_URL}/api/plans/usd-crypto/initial/available`)
+        .get(`${process.env.PLAN_DETAILS_URL}/api/plans/usd-crypto/initial/available${url}`)
         .then(resObj => {
           return {
             objects: resObj.data,
@@ -138,13 +145,13 @@ export default {
         plans.forEach((plan) => {
           switch (plan.period) {
             case 1:
-              plan.uiText = "мес";
+              plan.uiText = "1 месяц";
               break;
             case 3:
-              plan.uiText = "3 меc";
+              plan.uiText = "3 месяца";
               break;
             case 6:
-              plan.uiText = "6 мес";
+              plan.uiText = "6 месяцев";
               break;
             case 12:
               plan.uiText = "1 год";
@@ -203,28 +210,44 @@ export default {
   color: #AA1A17;
 }
 
-.btn_container {
+.payment_column_element {
   display: flex;
-  flex-direction: column;
-  justify-content: flex-start;
-  align-items: center;
+  flex-direction: row;
+  justify-content: center;
+  width: 100%;
+}
 
+.btn_container {
+  /*display: flex;*/
+  /*flex-direction: row;*/
+  /*justify-content: flex-start;*/
+  /*align-items: center;*/
+  /*flex-wrap: wrap;*/
+
+  display: grid;
+  gap: 25px;
+  grid-template-columns: repeat(2, 150px);
 }
 
 .btn_container-item {
-  background: #151C28;
+  background: rgba(13, 18, 26, 1);
   border-radius: 10px;
-  padding: 12px 35px;
-  margin-bottom: 18px;
+  padding: 5px 10px;
+  height: 92px;
+  color: #8B929B;
+  font-family: 'Roboto', sans-serif;
   font-size: 16px;
-  line-height: 19px;
-  color: #727A84;
-  text-align: center;
-  width: 60%;
+  font-style: normal;
+  font-weight: 400;
+  line-height: 24px; /* 150% */
+  box-shadow: 0 7px rgba(21, 28, 40, 1);
+  cursor: pointer;
+  min-height: 80px;
+  transition: all .5s ease 0s;
 }
-
-.btn_container-item:last-child {
-  margin-right: 0;
+.btn_container-item:active{
+  box-shadow: 0 2px rgba(170, 26, 23, 1);
+  transform: translateY(5px);
 }
 
 .second_element {
@@ -235,8 +258,8 @@ export default {
 }
 
 .selected_item {
-  background: #AA1A17;
   color: #FFFFFF;
+  box-shadow: 0 7px rgba(170, 26, 23, 1);
 }
 
 .design_section {
@@ -269,8 +292,39 @@ export default {
   line-height: 19px;
 }
 
+.time_section {
+  border-bottom: solid rgba(139, 146, 155, 1);
+}
+
 .price_section {
-  margin-left: 20px;
+  font-family: Roboto,sans-serif;
+  font-size: 24px;
+  font-style: italic;
+  font-weight: 700;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  margin-top: 12px;
+}
+
+.price_section_first {
+  height: 50%;
+}
+
+.sale_section {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  margin: 5px 0 0 0;
+  font-family: 'Roboto', sans-serif;
+  font-size: 16px;
+  font-style: normal;
+  font-weight: 400;
+}
+
+.sale_percent {
+  margin-left: 10px;
 }
 
 .persent_section {

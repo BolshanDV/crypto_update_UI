@@ -1,21 +1,25 @@
 <template>
   <div class="main_section">
     <div class="main_section-title">
-      <span>Продлить</span>
+      <span class="title_renew">Продлить</span>
       <div class="subscription_date">
-          <span
-            class="date_description"
-            v-if="!screenWidth"
-          >
-            заканчивается
-          </span>
-        <span
-          v-else
-          class="date_description"
-        >
-          до
-        </span>
-        {{ user_details.licence.renewalDate | changeDateFormat }}
+        <!--          <span-->
+        <!--            class="date_description data_margin"-->
+        <!--            v-if="!screenWidth"-->
+        <!--          >-->
+        <!--            заканчивается-->
+        <!--          </span>-->
+        <!--        <span-->
+        <!--          v-else-->
+        <!--          class="date_description data_margin"-->
+        <!--        >-->
+        <!--          до-->
+        <!--        </span>-->
+        <!--        {{ user_details.licence.renewalDate | changeDateFormat }}-->
+        <img
+          src="../../../assets/images/dashboard/arrow.svg"
+          @click="renewSubscription(false)"
+          alt="">
       </div>
     </div>
     <div class="payment_section">
@@ -33,12 +37,13 @@
           >
             <div>
               <s
+                v-if="available_plan.sale_percent < 0"
                 class="struct_out"
                 :class="{struct_out_active: (available_plan.id === paymentData.plan_id)}"
               >
-                {{available_plan.price_without_sale}}$
+                {{ available_plan.price_without_sale }}$
               </s>
-              <span>{{available_plan.price}}$</span>
+              <span>{{ available_plan.price }}$</span>
             </div>
             <div>
               {{ available_plan.uiText }}
@@ -90,13 +95,35 @@
             class="input"
             type="text"
             v-model="selectedChain.wallet"
+            readonly
           >
           <div
             v-if="selectedChain.wallet"
             @click="copy_address(selectedChain.wallet)"
             class="input_btn"
           >
-            <img src="../../../assets/images/payment/copy.svg" alt="">
+            <svg :class="{active: copyFlag === 'renewal'}"
+                 width="15" height="15" viewBox="0 0 15 15" fill="none"
+                 xmlns="http://www.w3.org/2000/svg">
+              <path :class="{active: copyFlag === 'renewal'}"
+                    d="M10.75 8.40995V10.36C10.75 12.96 9.71 14 7.11 14H4.64C2.04 14 1 12.96 1 10.36V7.88995C1 5.28995 2.04 4.24995 4.64 4.24995H6.59"
+                    stroke="white" stroke-linecap="round" stroke-linejoin="round"/>
+              <path :class="{active: copyFlag === 'renewal'}"
+                    d="M10.7496 8.40995H8.6696C7.1096 8.40995 6.5896 7.88995 6.5896 6.32995V4.24995L10.7496 8.40995Z"
+                    stroke="white" stroke-linecap="round" stroke-linejoin="round"/>
+              <path :class="{active: copyFlag === 'renewal'}" d="M7.23975 1H9.83975" stroke="white"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"/>
+              <path :class="{active: copyFlag === 'renewal'}" d="M4.25 2.95C4.25 1.871 5.121 1 6.2 1H7.903"
+                    stroke="white"
+                    stroke-linecap="round" stroke-linejoin="round"/>
+              <path :class="{active: copyFlag === 'renewal'}"
+                    d="M13.9996 4.90007V8.92357C13.9996 9.93107 13.1806 10.7501 12.1731 10.7501"
+                    stroke="white" stroke-linecap="round" stroke-linejoin="round"/>
+              <path :class="{active: copyFlag === 'renewal'}"
+                    d="M13.9999 4.9H12.0499C10.5874 4.9 10.0999 4.4125 10.0999 2.95V1L13.9999 4.9Z"
+                    stroke="white" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
           </div>
         </div>
       </div>
@@ -104,19 +131,36 @@
         <div class="payment_description">
           Ссылка на транзакцию/хеш
         </div>
-        <div class="payment_input">
+        <div
+          class="payment_input"
+        >
           <input v-model="transactionHash" class="input" type="text">
         </div>
       </div>
       <div class="payment_section-item between_section">
         <div class="button_section">
+          <!--          <div-->
+          <!--            class="button"-->
+          <!--            v-if="processingFlag === 'start'"-->
+          <!--            :class="{ button_active: mainFlag}"-->
+          <!--          >-->
+          <!--            Проверить транзакцию-->
+          <!--          </div>-->
           <div
             class="button"
-            v-if="processingFlag === 'start'"
-            :class="{ button_active: !((transactionHash === '') && (address === ''))}"
-            @click="checkTransaction"
+            v-if="!mainFlag"
           >
             Проверить транзакцию
+          </div>
+          <div v-else>
+            <div
+              class="button"
+              v-if="processingFlag === 'start'"
+              :class="{ button_active: mainFlag}"
+              @click="checkTransaction"
+            >
+              Проверить транзакцию
+            </div>
           </div>
           <div
             class="button button_active"
@@ -126,9 +170,9 @@
           </div>
         </div>
         <div v-if="!screenWidth" class="trans_desc">
-          <div>
+          <div class="description">
             ПЕРЕД ОПЛАТОЙ ОЗНАКОМЬТЕСЬ С
-            <div class="selected">ИНСТРУКЦИЕЙ ПО ОПЛАТЕ</div>
+            <nuxt-link to="/payment_instruction" class="selected">ИНСТРУКЦИЕЙ ПО ОПЛАТЕ</nuxt-link>
           </div>
         </div>
       </div>
@@ -137,7 +181,7 @@
 </template>
 
 <script>
-import {mapGetters, mapMutations} from "vuex";
+import {mapGetters, mapActions} from "vuex";
 import axios from "axios";
 import Spinner from "@/components/UIComponents/Spinner.vue";
 
@@ -149,7 +193,6 @@ export default {
     return {
       address: '',
       transactionHash: '',
-      // renewSubscriptionFlag: false,
       chains: [
         {
           icon: require('../../../assets/images/payment/ETH.svg'),
@@ -182,17 +225,23 @@ export default {
         discord_id: null,
         hash: null,
         chain_name: null
-      }
+      },
+      mainFlag: false
     }
   },
   computed: {
-    ...mapGetters('checkingScreen', ['screenWidth']),
+    ...mapGetters('checkingScreen', ['screenWidth', 'copyFlag']),
     ...mapGetters('authorizationHandler', ['user_details']),
-    ...mapGetters('checkoutModule', ['checkout'])
+    ...mapGetters('checkoutModule', ['checkout']),
   },
   mounted() {
     this.getPlans()
     this.getPaymentTokens()
+  },
+  watch: {
+    transactionHash() {
+      this.activeTransaction()
+    }
   },
   filters: {
     changeDateFormat: function (str) {
@@ -202,24 +251,41 @@ export default {
     },
   },
   methods: {
+    ...mapActions('checkingScreen', ['changeCopyFlag']),
+
+    activeTransaction() {
+      let flag = ''
+      if (this.paymentData.plan_id !== null) flag += "plan"
+      if (this.selectedChain.name !== '') flag += "hash"
+      if (this.transactionHash !== '') flag += "Thash"
+      if (flag.length === 13) {
+        this.mainFlag = true
+      }
+    },
 
     setPlanId(id, renewal_price) {
       this.paymentData.plan_id = id
       this.checkedPlan = renewal_price
+      this.activeTransaction()
     },
     chooseChain(type) {
       this.selectedChain.name = type
       this.selectedChain.payment_tokens = this.chains_details.find(chains_detail => chains_detail.chain_name === type).payment_tokens
       this.selectedChain.wallet = this.chains_details.find(chains_detail => chains_detail.chain_name === type).wallet
       this.paymentData.chain_name = type
+      this.activeTransaction()
     },
 
     async copy_address(address) {
       let text = address
       try {
         if (navigator.clipboard) {
+          await this.changeCopyFlag('renewal')
           await navigator.clipboard.writeText(text);
           console.log(`The text '${text}' is in the Clipboard Now!`);
+          setTimeout(() => {
+            this.changeCopyFlag(false)
+          }, 150);
         } else {
           console.log(`Clipboard API is Not Supported`);
         }
@@ -244,14 +310,13 @@ export default {
         )
         .then(resObj => {
           if (resObj.status === 200) {
-            this.renewSubscription(true)
+            this.renewSubscription(false)
             this.processingFlag = 'start'
           }
         })
         .catch(error => {
-          this.$router.push('/dashboard')
+          this.renewSubscription(false)
           this.processingFlag = 'start'
-          console.log('error')
         });
     },
     sorterPlans(field) {
@@ -260,7 +325,7 @@ export default {
 
     async getPlans() {
       const response = await axios
-        .get(`${process.env.PLAN_DETAILS_URL}/api/plans/usd-crypto/initial/available`)
+        .get(`${process.env.PLAN_DETAILS_URL}/api/plans/usd-crypto/renewal/available`)
         .then(resObj => {
           return {
             objects: resObj.data,
@@ -319,6 +384,10 @@ export default {
   flex-direction: column;
 }
 
+.subscription_date {
+  cursor: pointer;
+}
+
 .main_section-title {
   display: flex;
   flex-direction: row;
@@ -327,7 +396,7 @@ export default {
   font-size: 22px;
   line-height: 22px;
   color: #FFFFFF;
-  margin-bottom: 20px;
+  margin-bottom: 15px;
 }
 
 .payment_section {
@@ -353,6 +422,7 @@ export default {
   flex-direction: row;
   align-items: center;
   justify-content: flex-start;
+  height: 100px;
 }
 
 .chain_elements-item {
@@ -379,6 +449,7 @@ export default {
   align-items: center;
   box-shadow: 4px 4px 0 1px rgba(71, 77, 84, 1);
   margin-bottom: 10px;
+  transition: all 1s ease;
 }
 
 .chain_svg_active {
@@ -441,16 +512,19 @@ export default {
   flex-direction: row;
   justify-content: space-between;
   align-items: center;
+  height: 59px;
 }
 
 .selected_plan-item {
   background: #151C28;
   border-radius: 10px;
-  padding: 8px 5px 5px;
+  padding: 8px 1px 5px;
   color: #727A84;
   width: 100%;
-  margin-right: 6px;
+  margin-right: 11px;
   text-align: center;
+  cursor: pointer;
+  transition: all 1s ease;
 }
 
 .selected_plan-item:last-child {
@@ -479,12 +553,39 @@ export default {
 .input_element-btn {
   background: #151C28;
 }
-.struct_out{
+
+.struct_out {
   color: #9e1613;
 }
-.struct_out_active{
+
+.struct_out_active {
   color: #FFFFFF;
 }
+
+.data_margin {
+  margin-right: 10px;
+}
+
+.description {
+  color: #727A84;
+  text-align: right;
+  font-feature-settings: 'clig' off, 'liga' off;
+  font-family: Roboto, sans-serif;
+  font-size: 12px;
+  font-style: normal;
+  font-weight: 400;
+  line-height: 18.5px; /* 154.167% */
+}
+
+.title_renew {
+  font-feature-settings: 'clig' off, 'liga' off;
+  font-family: 'Montserrat', sans-serif;
+  font-size: 20px;
+  font-style: normal;
+  font-weight: 500;
+  line-height: 32px; /* 160% */
+}
+
 @media screen and ( width < 850px) {
   .chain_svg {
     width: 60px;
@@ -508,5 +609,19 @@ export default {
   .between_section {
     justify-content: flex-end;
   }
+
+  .selected_plan {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    grid-template-rows: repeat(2, 1fr);
+    gap: 10px;
+    height: auto;
+  }
+
+  .selected_plan-item {
+    margin: 0;
+    width: 93%;
+  }
+
 }
 </style>

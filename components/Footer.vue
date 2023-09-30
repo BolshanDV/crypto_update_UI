@@ -62,19 +62,19 @@ export default {
     return {
       links: [
         {
-          href: '',
+          href: 'https://discord.gg/a4GN6xY9kq',
           logotype: require('@/assets/images/footer/discord.svg')
         },
         {
-          href: '',
+          href: 'https://twitter.com/cmd_crypto',
           logotype: require('@/assets/images/footer/twitter.svg')
         },
         {
-          href: '',
+          href: 'https://t.me/cmd_crypto',
           logotype: require('@/assets/images/footer/telegram.svg')
         },
         {
-          href: '',
+          href: 'https://vk.com/cmd_crypto',
           logotype: require('@/assets/images/footer/vk.svg')
         }
       ]

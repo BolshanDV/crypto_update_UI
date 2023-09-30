@@ -15,6 +15,7 @@ export default {
   width: 60px;
   height: 90px;
   margin-top: 10px;
+  outline: none;
 }
 
 @media screen and ( width < 850px) {

@@ -3,15 +3,13 @@
     <div class="main_section">
       <div class="description_block">
         <div class="description_block-item title">
-          ЕДИНСТВЕННАЯ КРИПТО-ГРУППА НУЖНАЯ ВАМ
+          ЕДИНСТВЕННАЯ КРИПТО-ГРУППА НУЖНАЯ <span class="selected_title">ВАМ</span>
         </div>
         <div class="description_block-item text_desc">
-          c:rypto - это группа, сочетающая в себе все, что нужно любому криптану, существующая с одной целью - упростить
-          и
-          автоматизировать работу и анализ в крипте. Информация по NFT на ETH и прочих актуальных блокчейнах,
-          эксклюзивные
-          предложения от партнеров. входящий в стоимость подписки набор тулзов и полная поддержка - все это вы найдете в
-          c:rypto.
+          c:rypto - это приватная группа, сочетающая в себе все, что нужно любому криптану, существующая с одной целью -
+          упростить и автоматизировать работу и анализ в крипте. Информация по NFT на ETH и прочих актуальных
+          блокчейнах, гайды, информация по ретродропам, входящий в стоимость подписки набор тулзов и полная поддержка -
+          все это вы найдете у нас.
         </div>
         <div class="description_block-item title_second">
           <p>Выберите план подписки или ознакомьтесь с
@@ -19,31 +17,37 @@
           </p>
         </div>
         <div class="description_block-item">
-          <div class="btn_container">
-            <div
-              v-for="available_plan in available_plans"
-              :key="available_plan.id"
-            >
-              <div class="btn_container-item"
-                   @click="setPlanId(available_plan.id)"
-                   v-bind:class="{ selected_item: available_plan.id === checkout['plan_id']}"
-              >
-                {{ available_plan.price }}$ / {{ available_plan.uiText }}
-              </div>
+          <transition name="mode-fade" mode="out-in">
+            <div class="btn_container">
               <div
-                class="sale_section"
+                class="btn_container-item"
+                v-for="(available_plan, index) in available_plans"
+                v-bind:class="{ selected_item: available_plan.id === checkout['plan_id']}"
+                :key="available_plan.id"
+                @click="setPlanId(available_plan.id)"
               >
+                <div class="time_section">{{ available_plan.uiText }}</div>
                 <div
-                  v-if="available_plan.sale_percent !== 0"
+                  class="price_section"
+                  :class="{price_section_first: available_plan.sale_percent >= 0}"
                 >
-                  <s class="selected">{{ available_plan.price_without_sale }}$</s>
-                  <span class="sale_percent">-{{ available_plan.sale_percent }}%</span>
+                  {{ available_plan.price }}$
                 </div>
+                <div
+                  class="sale_section"
+                >
+                  <div
+                    v-if="available_plan.sale_percent < 0"
+                  >
+                    <s class="selected">{{ available_plan.price_without_sale }}$</s>
+                    <span class="sale_percent">{{ available_plan.sale_percent }}%</span>
+                  </div>
+                </div>
+
               </div>
 
             </div>
-
-          </div>
+          </transition>
         </div>
         <div class="description_block-item">
           <div class="design_section">
@@ -66,42 +70,21 @@
               <div class="text_desc">
                 Мы принимаем только $USDT/$USDC/$BUSD в следующих сетях: ETH, BSC, SOL, POLYGON. Перед покупкой
                 убедитесь
-                что вы полностью прочитали инструкции по оплате и пользовательское соглащение
+                что вы полностью прочитали
+                <nuxt-link to="/payment_instruction" class="selected">инструкции по оплате</nuxt-link>
+                и
+                <nuxt-link to="/terms" class="selected">пользовательское соглащение</nuxt-link>
               </div>
             </div>
           </div>
         </div>
       </div>
-      <div class="statistic_block">
-<!--        <div class="statistic_block-item">-->
-<!--          <div class="title_number">-->
-<!--            {{ member_amount.current_member_amount }}-->
-<!--          </div>-->
-<!--          <div class="statistic_block_text">-->
-<!--            текущих мемберов-->
-<!--          </div>-->
-<!--        </div>-->
-<!--        <div class="statistic_block-item">-->
-<!--          <div class="statistic_block_text">-->
-<!--            из-->
-<!--          </div>-->
-<!--          <div class="title_number">-->
-<!--            {{ member_amount.available_member_amount }}-->
-<!--          </div>-->
-<!--          <div class="statistic_block_text">-->
-<!--            всего доступных мест-->
-<!--          </div>-->
-<!--          <div class="statistic_block_text_main">-->
-<!--            Согласятся-->
-<!--          </div>-->
-<!--        </div>-->
-      </div>
     </div>
-    <div class="arrow_element">
-      <div class="arrow one">
-        <img src="../../assets/images/index/main/arrow.svg" alt="">
-      </div>
-    </div>
+    <!--    <div class="arrow_element">-->
+    <!--      <div class="arrow one">-->
+    <!--        <img src="../../assets/images/index/main/arrow.svg" alt="">-->
+    <!--      </div>-->
+    <!--    </div>-->
   </div>
 
 </template>
@@ -117,7 +100,8 @@ export default {
     available_plans: []
   }),
   computed: {
-    ...mapGetters('checkoutModule', ['checkout'])
+    ...mapGetters('checkoutModule', ['checkout']),
+
   },
   mounted() {
     this.getMembersPreview();
@@ -127,27 +111,31 @@ export default {
     ...mapMutations('checkoutModule', ['setPlanId']),
 
     async getMembersPreview() {
-      const response = await axios
-        .get(`${process.env.PLAN_DETAILS_URL}/api/server/details/members/preview`)
-        .then(resObj => {
-          return {
-            objects: resObj.data,
-            status: resObj.status
-          };
-        })
-        .catch(error => {
-          console.log(error);
-        });
-      if (response.status === 200) {
-        this.member_amount = response.objects
-      }
+      // const response = await axios
+      //   .get(`${process.env.PLAN_DETAILS_URL}/api/server/details/members/preview`)
+      //   .then(resObj => {
+      //     return {
+      //       objects: resObj.data,
+      //       status: resObj.status
+      //     };
+      //   })
+      //   .catch(error => {
+      //     console.log(error);
+      //   });
+      // if (response.status === 200) {
+      //   this.member_amount = response.objects
+      // }
     },
     sorterPlans(field) {
       return (a, b) => a[field] > b[field] ? 1 : -1;
     },
     async getPlans() {
+      let url = ''
+      if (localStorage.referralCode) {
+        url = '?referralCode=' + localStorage.referralCode
+      }
       const response = await axios
-        .get(`${process.env.PLAN_DETAILS_URL}/api/plans/usd-crypto/initial/available`)
+        .get(`${process.env.PLAN_DETAILS_URL}/api/plans/usd-crypto/initial/available${url}`)
         .then(resObj => {
           return {
             objects: resObj.data,
@@ -163,7 +151,7 @@ export default {
         plans.forEach((plan) => {
           switch (plan.period) {
             case 1:
-              plan.uiText = "месяц";
+              plan.uiText = "1 месяц";
               break;
             case 3:
               plan.uiText = "3 месяца";
@@ -195,32 +183,35 @@ export default {
   position: relative;
   display: flex;
   flex-direction: row;
-  justify-content: center;
+  justify-content: flex-start;
   z-index: 10;
+  padding: 0 0 0 5%;
 }
 
 .description_block {
-  width: 70%;
+  width: 80%;
   display: flex;
   flex-direction: column;
   margin-right: 58px;
 }
 
-.statistic_block {
-  width: 24%;
-}
 
 .title {
-  font-weight: 500;
   font-size: 36px;
-  line-height: 42px;
   letter-spacing: 0.01em;
-  color: #FFFFFF;
+  color: #FFF;
+  font-family: 'Montserrat', sans-serif;
+  font-style: normal;
+  font-weight: 600;
+  line-height: normal;
+}
+
+.selected_title {
+  color: #AA1A17;
 }
 
 .description_block-item {
   margin-bottom: 28px;
-  padding-right: 100px;
 }
 
 .description_block-item:first-child {
@@ -233,15 +224,21 @@ export default {
 }
 
 .text_desc {
-  color: #727A84;
-  /*max-width: 600px;*/
+  color: #8B929B;
+  font-family: 'Roboto', sans-serif;
+  font-size: 16px;
+  font-style: normal;
+  font-weight: 400;
 }
 
 .title_second {
-  font-weight: 500;
-  font-size: 24px;
-  line-height: 28px;
   color: #FFFFFF;
+  font-family: 'Roboto', sans-serif;
+  font-size: 20px;
+  font-style: normal;
+  font-weight: 400;
+  line-height: normal;
+  letter-spacing: 0.2px;
 }
 
 .selected {
@@ -251,17 +248,54 @@ export default {
 .btn_container {
   display: flex;
   flex-direction: row;
+  /*margin-top: 10px;*/
 }
 
 .btn_container-item {
-  background: #151C28;
+  background: rgba(13, 18, 26, 1);
   border-radius: 10px;
-  padding: 12px 30px;
+  padding: 5px 10px;
   margin-right: 20px;
+  width: 150px;
+  color: #8B929B;
+  font-family: 'Roboto', sans-serif;
   font-size: 16px;
-  line-height: 24px;
-  color: #727A84;
-  text-align: center;
+  font-style: normal;
+  font-weight: 400;
+  line-height: 24px; /* 150% */
+  box-shadow: 0 7px rgba(21, 28, 40, 1);
+  cursor: pointer;
+  transition: all .5s ease 0s;
+  min-height: 80px;
+}
+
+.btn_container-item:hover {
+  background: rgba(21, 28, 40, 1);
+}
+
+.btn_container-item:active {
+  box-shadow: 0 2px rgba(170, 26, 23, 1);
+  transform: translateY(5px);
+}
+
+.time_section {
+  border-bottom: solid rgba(139, 146, 155, 1);
+}
+
+.price_section {
+  font-family: Roboto,sans-serif;
+  font-size: 24px;
+  font-style: italic;
+  font-weight: 700;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  margin-top: 12px;
+}
+
+.price_section_first {
+  height: 50%;
 }
 
 .btn_container-item:last-child {
@@ -269,75 +303,43 @@ export default {
 }
 
 .selected_item {
-  background: #AA1A17;
   color: #FFFFFF;
+  box-shadow: 0 7px rgba(170, 26, 23, 1);
 }
 
 .design_section {
   display: flex;
   flex-direction: row;
   justify-content: flex-end;
-  align-items: center;
+  align-items: flex-end;
+  margin-top: 20px;
 }
 
 .design_section-item:first-child {
   margin-right: 20px;
 }
 
+.design_section-item:last-child {
+  margin-right: 150px;
+}
+
 .design_btn {
   padding: 12px 48px;
-  font-size: 19px;
   line-height: 22px;
   letter-spacing: 0.01em;
   color: #727A84;
   background: #151C28;
   border-radius: 10px;
+  margin-bottom: 5px;
+  font-size: 16px;
+  font-style: normal;
+  font-weight: 400;
 }
 
 .design_btn_active {
   color: #FFFFFF;
   background: #AA1A17;
-}
-
-.statistic_block-item {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-}
-
-.statistic_block-item:first-child {
-  background: #171E2B;
-  border-radius: 20px 20px 0 0;
-  padding: 30px 40px 15px;
-}
-
-.statistic_block-item:last-child {
-  background: #0B1017;
-  border-radius: 0 0 20px 20px;
-  padding: 15px 25px 25px;
-}
-
-.title_number {
-  font-weight: 700;
-  font-size: 96px;
-  line-height: 112px;
-  color: #FFFFFF;
-}
-
-.statistic_block_text {
-  color: #727A84;
-  align-items: center;
-}
-
-.statistic_block_text_main {
-  font-weight: 500;
-  font-size: 24px;
-  line-height: 25px;
-  text-align: center;
-  letter-spacing: 0.01em;
-  color: #FFFFFF;
-  margin-top: 15px;
+  cursor: pointer;
 }
 
 .arrow_element {
@@ -351,21 +353,20 @@ export default {
 .arrow {
   animation: arrowDown 2s infinite;
 }
-.sale_section{
+
+.sale_section {
   display: flex;
   flex-direction: row;
   justify-content: center;
-  margin: 15px 20px 0 0;
+  margin: 5px 0 0 0;
+  font-family: 'Roboto', sans-serif;
+  font-size: 16px;
+  font-style: normal;
+  font-weight: 400;
 }
-.sale_percent{
-  margin-left: 15px;
-  color: #FFFFFF;
-}
-.circles--monitors {
-  position: absolute;
-  right: 0;
-  top: -150px;
-  z-index: 0;
+
+.sale_percent {
+  margin-left: 10px;
 }
 
 @keyframes arrowDown {
@@ -380,8 +381,7 @@ export default {
 }
 
 @media screen and (max-width: 800px) {
-  /*.main_section {*/
-  /*flex-direction: column;*/
-  /*}*/
+
+
 }
 </style>

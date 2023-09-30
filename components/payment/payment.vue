@@ -13,7 +13,8 @@
       <div class="payment_section-item">
         <div class="payment_description">
           Перед оплатой внимательно ознакомьтесь с нашими
-          <span class="selected">Условиями</span> и <span class="selected">Инструкцией по оплате</span>
+          <nuxt-link to="/terms" class="selected">Условиями</nuxt-link> и
+          <nuxt-link to="/payment_instruction" class="selected">Инструкции по оплате</nuxt-link>
         </div>
       </div>
       <div class="payment_section-item">
@@ -57,13 +58,33 @@
             class="input"
             type="text"
             v-model="selectedChain.wallet"
+            readonly
           >
           <div
             v-if="selectedChain.wallet"
             @click="copy_address(selectedChain.wallet)"
             class="input_btn"
           >
-            <img src="../../assets/images/payment/copy.svg" alt="">
+            <svg :class="{active: copyFlag === 'payment'}"
+                 width="15" height="15" viewBox="0 0 15 15" fill="none"
+                 xmlns="http://www.w3.org/2000/svg">
+              <path :class="{active: copyFlag === 'payment'}"
+                    d="M10.75 8.40995V10.36C10.75 12.96 9.71 14 7.11 14H4.64C2.04 14 1 12.96 1 10.36V7.88995C1 5.28995 2.04 4.24995 4.64 4.24995H6.59"
+                    stroke="white" stroke-linecap="round" stroke-linejoin="round"/>
+              <path :class="{active: copyFlag === 'payment'}"
+                    d="M10.7496 8.40995H8.6696C7.1096 8.40995 6.5896 7.88995 6.5896 6.32995V4.24995L10.7496 8.40995Z"
+                    stroke="white" stroke-linecap="round" stroke-linejoin="round"/>
+              <path :class="{active: copyFlag === 'payment'}" d="M7.23975 1H9.83975" stroke="white" stroke-linecap="round"
+                    stroke-linejoin="round"/>
+              <path :class="{active: copyFlag === 'payment'}" d="M4.25 2.95C4.25 1.871 5.121 1 6.2 1H7.903" stroke="white"
+                    stroke-linecap="round" stroke-linejoin="round"/>
+              <path :class="{active: copyFlag === 'payment'}"
+                    d="M13.9996 4.90007V8.92357C13.9996 9.93107 13.1806 10.7501 12.1731 10.7501"
+                    stroke="white" stroke-linecap="round" stroke-linejoin="round"/>
+              <path :class="{active: copyFlag === 'payment'}"
+                    d="M13.9999 4.9H12.0499C10.5874 4.9 10.0999 4.4125 10.0999 2.95V1L13.9999 4.9Z"
+                    stroke="white" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
           </div>
         </div>
       </div>
@@ -78,7 +99,12 @@
           Ссылка на транзакцию/хеш
         </div>
         <div class="payment_input">
-          <input v-model="transactionHash" class="input" type="text">
+          <input
+            v-model="transactionHash"
+            class="input"
+            type="text"
+            :class="{exception: transactionSate === 'error'}"
+          >
         </div>
       </div>
       <div class="payment_section-item">
@@ -89,11 +115,12 @@
             Проверка транзакции
           </div>
           <div
-            v-else
+            v-if="((transactionHash !== '') && (this.selectedChain.name !== ''))"
             class="button button_active"
             @click="checkTransaction"
           >
-            Проверка транзакции
+            <span v-if="transactionSate === 'default' || transactionSate === 'error'">Проверка транзакции</span>
+            <span v-if="transactionSate === 'processing'" class="loader"></span>
           </div>
         </div>
 
@@ -105,6 +132,7 @@
 <script>
 import axios from "axios";
 import {mapGetters, mapActions} from "vuex";
+import error from "@/layouts/error.vue";
 
 export default {
   name: "payment",
@@ -138,7 +166,7 @@ export default {
         wallet: ''
       },
       counterFilling: 0,
-      success_result_flag: false,
+      transactionSate: 'default',
       currentTime: null,
       timer_id: '',
       time: {
@@ -148,6 +176,10 @@ export default {
     }
   },
   computed: {
+    ...mapGetters('checkingScreen', ['copyFlag']),
+    error() {
+      return error
+    },
     checkout_details() {
       if (localStorage.checkout_details) {
         return JSON.parse(localStorage.getItem('checkout_details'));
@@ -170,6 +202,7 @@ export default {
     }
   },
   methods: {
+    ...mapActions('checkingScreen', ['changeCopyFlag']),
     startTimer() {
       this.currentTime = window.localStorage.getItem('timestamp')
       this.currentTime = new Date(this.currentTime).getTime() - new Date().getTime()
@@ -220,8 +253,12 @@ export default {
       let text = address
       try {
         if (navigator.clipboard) {
+          await this.changeCopyFlag('payment')
           await navigator.clipboard.writeText(text);
           console.log(`The text '${text}' is in the Clipboard Now!`);
+          setTimeout(() => {
+            this.changeCopyFlag(false)
+          }, 150);
         } else {
           console.log(`Clipboard API is Not Supported`);
         }
@@ -231,6 +268,8 @@ export default {
     },
 
     async checkTransaction() {
+      this.transactionSate = 'default'
+      this.transactionSate = 'processing'
       await axios
         .post(`${process.env.PAYMENT_URL}/api/billing/internal/crypto/transactions/i/validate`,
           {
@@ -245,12 +284,12 @@ export default {
           if (resObj.status === 200) {
             this.stopTimer()
             this.success_result(resObj.data.identifier)
-            console.log(resObj.data)
+            this.transactionSate = 'default'
           }
         })
         .catch(error => {
           console.log(error);
-
+          this.transactionSate = 'error'
         });
     }
 
@@ -266,9 +305,7 @@ export default {
   display: flex;
   flex-direction: column;
   padding: 35px 36px 25px;
-  width: 24%;
-  min-width: 320px;
-  max-width: 400px;
+  width: 391px;
 }
 
 .main_section-title {
@@ -276,10 +313,14 @@ export default {
   flex-direction: row;
   justify-content: space-between;
   align-items: center;
-  font-size: 22px;
-  line-height: 22px;
   color: #FFFFFF;
   margin-bottom: 30px;
+  font-family: Montserrat,serif;
+  font-size: 24px;
+  font-style: normal;
+  font-weight: 700;
+  line-height: 24px; /* 100% */
+  letter-spacing: 0.24px;
 }
 
 .payment_section {
@@ -362,15 +403,20 @@ export default {
 }
 
 .button_active {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
   background: #AA1A17;
   border-radius: 8px;
   color: #FFFFFF;
+  width: 160px;
 }
-
+.exception{
+  color: #AA1A17;
+}
 @media screen and (width < 850px) {
   .main_section {
     border: 1px solid rgba(114, 122, 132, 0.1);
-    width: 85%;
     padding: 30px 15px 18px;
   }
 

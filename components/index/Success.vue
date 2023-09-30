@@ -81,33 +81,40 @@ export default {
 <style scoped>
 .success_section {
   display: flex;
-  height: 60vh;
-  max-height: 600px;
+  height: 592px;
   flex-direction: row;
-  justify-content: space-around;
+  justify-content: space-between;
   /*background-image: url("~@/assets/images/index/success/discord_background.svg");*/
   background-size: 100%;
   position: relative;
   z-index: 10;
-  background: #0D121A no-repeat;
+  width: 1280px;
+  /*background: #0D121A no-repeat;*/
 }
 
 .success_section-element {
-  width: 30%;
-  max-width: 350px;
-  max-height: 600px;
+  width: 455px;
+  height: 547px;
   background: #0D121A;
-  border: 2px solid #151C28;
+  border: 3px solid #151C28;
   border-radius: 8px;
-  /*margin-right: 6%;*/
-  padding: 20px 35px;
+  padding: 20px 30px;
   display: flex;
   flex-direction: column;
   overflow-y: scroll;
+  scrollbar-gutter: stable;
+  /*margin-left: 20px;*/
 }
 .success_section-element::-webkit-scrollbar {
-  width: 0;
-  height: 0;
+  width: 1px;
+}
+.success_section-element::-webkit-scrollbar-thumb {
+  background: #AA1A17;
+  border-radius: 3px;
+  width: 2px;
+}
+.success_section-element::-webkit-scrollbar-track {
+  background: #0D121A;
 }
 .headline{
   font-size: 22px;
@@ -159,18 +166,18 @@ export default {
   flex-direction: column;
   justify-content: flex-end;
   align-items: center;
-  width: 50%;
 }
 .discord{
-  height: 80%;
+  width: 701px;
 }
 @media screen and (width < 850px) {
   .image_section{
     display: none;
   }
   .success_section-element{
-    width: 85%;
     padding: 20px 15px;
+    width: 304px;
+    height: 485px;
   }
   .success_section{
     height: 485px;

@@ -48,7 +48,7 @@ export default {
 .panels_section {
   display: flex;
   flex-direction: column;
-  /*height: 80vh;*/
+  width: 340px;
 }
 
 .penal_body {

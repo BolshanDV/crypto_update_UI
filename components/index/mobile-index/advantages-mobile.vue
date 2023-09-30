@@ -105,6 +105,7 @@ export default {
   display: flex;
   flex-direction: column;
   align-items: center;
+  /*padding: 0 20px;*/
 }
 
 .features_main_item {

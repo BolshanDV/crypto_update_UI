@@ -24,13 +24,25 @@
          v-if="!screenWidth"
     >
       <div class="button_section">
-        <!--        <div class="button">-->
-        <!--          Рефералы-->
-        <!--        </div>-->
+        <div
+          class="button"
+          @click="changeReferralFlag()"
+        >
+          <div v-if="referralFlag"
+               class="text_menu"
+          >
+            Рефералы
+          </div>
+          <div v-else
+               class="text_menu"
+          >
+            Dashboard
+          </div>
+        </div>
       </div>
       <div class="button_section">
         <div class="button">
-          Web tools
+          <a href="https://app.cmd-root.com/web-tools/" class="text_menu">Web tools</a>
         </div>
       </div>
     </div>
@@ -38,7 +50,7 @@
          v-else
     >
       <div class="description price_element">
-                {{ realPlan.price}}$/{{realPlan.uiText}}
+        {{ realPlan.price }}$/{{ realPlan.uiText }}
       </div>
       <div class="description">
         Текущий план
@@ -48,14 +60,15 @@
 </template>
 
 <script>
-import {mapGetters} from "vuex";
+import {mapGetters, mapActions} from "vuex";
 import axios from "axios";
 
 export default {
   name: "Header-penal",
   computed: {
     ...mapGetters('checkingScreen', ['screenWidth']),
-    ...mapGetters('authorizationHandler', ['user_details'])
+    ...mapGetters('authorizationHandler', ['user_details']),
+      ...mapGetters('referralModule', ['referralFlag'])
   },
   data() {
     return {
@@ -64,10 +77,13 @@ export default {
       realPlan: {}
     }
   },
-  mounted() {
-    this.getPlans()
+  async mounted() {
+    await this.GET_USER_DETAILS()
+    await this.getPlans()
   },
   methods: {
+    ...mapActions('authorizationHandler', ['GET_USER_DETAILS']),
+    ...mapActions('referralModule', ['changeReferralFlag']),
     sorterPlans(field) {
       return (a, b) => a[field] > b[field] ? 1 : -1;
     },
@@ -87,24 +103,23 @@ export default {
         let plans = response.objects
         plans.sort(this.sorterPlans('period'));
         plans.forEach((plan) => {
-          switch (plan.period) {
-            case 1:
-              plan.uiText = "месяц";
-              break;
-            case 3:
-              plan.uiText = "3 месяца";
-              break;
-            case 6:
-              plan.uiText = "6 месяцев";
-              break;
-            case 12:
-              plan.uiText = "1 год";
-              break;
-          }
           this.available_plans.push(plan)
-          if (plan.id == this.user_details.licence.planId) {
+          if (plan.id === this.user_details.licence.planId) {
+            switch (plan.period) {
+              case 1:
+                plan.uiText = "месяц";
+                break;
+              case 3:
+                plan.uiText = "3 месяца";
+                break;
+              case 6:
+                plan.uiText = "6 месяцев";
+                break;
+              case 12:
+                plan.uiText = "1 год";
+                break;
+            }
             this.realPlan = plan
-            console.log(this.realPlan)
           }
         });
       }
@@ -124,10 +139,22 @@ export default {
 .button {
   background: #AA1A17;
   border-radius: 10px;
-  padding: 7px 25px;
+  padding: 8px 25px 7px;
   color: #FFFFFF;
+  text-align: center;
+  width: 90px;
+  cursor: pointer;
 }
 
+.button:hover {
+  background: #d21f1d;
+}
+.button_section{
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+}
 .button_section:first-child {
   margin-right: 15px;
 }
@@ -153,11 +180,10 @@ export default {
 .price_element {
   color: #AA1A17;
   font-weight: 500;
-  margin: 0 0 5px;
 }
 
 .user_img {
-  border: 1px solid #2BD6A2;
+  border: 2px solid #2BD6A2;
   width: 45px;
   height: 45px;
   border-radius: 50%;
@@ -186,5 +212,11 @@ export default {
   font-size: 14px;
   line-height: 20px;
   color: #727A84;
+}
+.text_menu{
+  font-family: Roboto, sans-serif;
+  font-style: normal;
+  font-size: 15px;
+  font-weight: 300;
 }
 </style>
