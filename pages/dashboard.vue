@@ -24,21 +24,26 @@ export default {
     ...mapGetters('checkingScreen', ['screenWidth']),
     ...mapGetters('authorizationHandler', ['unbindLicense', 'isUserAuthorized'])
   },
-  methods:{
+  methods: {
     ...mapActions('authorizationHandler', ['GET_USER_DETAILS']),
-    ...mapActions('checkingScreen', ['checkingScreen'])
+    ...mapActions('checkingScreen', ['checkingScreen']),
+    ...mapActions('referralModule', ['GET_REFERRAL_DETAILS'])
   },
   beforeMount() {
     this.checkingScreen()
   },
-  mounted() {
-    this.GET_USER_DETAILS();
+  async mounted() {
+    await this.GET_USER_DETAILS();
+    await this.GET_REFERRAL_DETAILS()
   }
 }
 </script>
 
 <style scoped>
-.dash_section{
-  padding: 1vh 5%;
+.dash_section {
+  padding: 70px 0 0 0;
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
 }
 </style>

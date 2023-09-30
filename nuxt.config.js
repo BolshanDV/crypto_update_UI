@@ -5,7 +5,7 @@ export default {
   },
   mode: 'spa',
   head: {
-    title: 'upgrade_ui',
+    title: 'crypto.cmd-root',
     htmlAttrs: {
       lang: 'en'
     },
@@ -16,7 +16,7 @@ export default {
       { name: 'format-detection', content: 'telephone=no' }
     ],
     link: [
-      { rel: 'icon', type: 'image/x-icon', href: '/favicon.ico' }
+      { rel: 'icon', type: 'image/x-icon', href: '/favicon_root.ico' }
     ]
   },
 

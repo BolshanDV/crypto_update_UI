@@ -27,7 +27,7 @@ export default {
   actions: {
     GET_USER_DETAILS: async (ctx) => {
       await axios
-        .get(`http://localhost:8010/api/user/details/all`, {
+        .get(`${process.env.USER_DETAILS_URL}/api/user/details/all`, {
           withCredentials: true
         })
         .then(res => {

@@ -6,7 +6,7 @@ export const state = () => ({
     plan_id: null,
     email: null,
     referral_code: null,
-    checkout_details: {}
+    // checkout_details: {}
   }
 
 })
